@@ -1,16 +1,23 @@
 Category	Type	Subtype	FieldName	FieldType	FieldBitmask
 Heartbeat	System	HEARTBEAT			
-Status	Mission	MISSION_PHASE
-			Enum_Mission_Phase	enum	FALSE
+Status	Mission	MISSION_PHASE			
+			MissionPhase	enum	FALSE
+Status	System	INAV			
+			inavmodes	int	FALSE
+			airspeed	int	FALSE
+			groundspeed	int	FALSE
+			heading	int	FALSE
+			msl_alt	int	FALSE
+			packed_mgrs	bytes	FALSE
 Status	System	FLIGHT			
 			FlightMode	enum	FALSE
-			airspeed	uint8_t	FALSE
-			groundspeed	uint8_t	FALSE
-			heading	uint8_t	FALSE
-			msl_alt	uint16_t	FALSE
-			lattitude	int32_t	FALSE
-			longitude	int32_t	FALSE
+			airspeed	int	FALSE
+			groundspeed	int	FALSE
+			heading	int	FALSE
+			msl_alt	int	FALSE
+			packed_mgrs	bytes	FALSE
 Status	System	POSITION			
+			packed_mgrs	bytes	FALSE
 Status	System	NAVIGATION			
 Status	System	FUEL			
 Status	System	CONTROL			
@@ -25,7 +32,7 @@ Command	System	SWITCH_DATALINK
 Command	System	DATALINK_CONFIG			
 Command	System	SET_FLIGHT_PARAMETERS			
 Command	Mission	SET_MISSION			
-			mission_index	uint8_t	FALSE
+			mission_index	int	FALSE
 Command	Mission	SET_MISSION_MODE			
 Command	Mission	TAKEOFF			
 Command	Mission	ABORT			
@@ -36,15 +43,13 @@ Command	Mission	REASSIGN
 Command	Mission	SET_WAYPOINT			
 Command	Mission	SET_ZONE			
 Command	Mission	NAVIGATE_TO			
-			lattitude	int32_t	FALSE
-			longitude	int32_t	FALSE
+			packed_mgrs	bytes	FALSE
 Command	Mission	LOITER			
 Command	Mission	LAND			
-Command	Mission	ALLOW_DEPLOY			
-Command	Mission	ALLOW_ENGAGE			
+Command	Mission	ALLOW_DEPLOY	
 Command	Mission	SWARM_CONTROL			
-Event	Mission	PHASE
-			Enum_Mission_Phase	enum	FALSE
+Event	Mission	PHASE			
+			MissionPhase	enum	FALSE
 Event	System	ONLINE			
 Event	System	GPS_FIX			
 Event	System	ERROR			

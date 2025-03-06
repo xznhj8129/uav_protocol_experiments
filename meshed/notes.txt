@@ -1,0 +1,4 @@
+pip install https://github.com/xznhj8129/froggeolib/archive/master.zip --break-system-packages 
+pip install https://github.com/xznhj8129/frogcot/archive/master.zip --break-system-packages
+pip install https://github.com/xznhj8129/frogtastic/archive/master.zip --break-system-packages
+pip install https://github.com/xznhj8129/unavlib/archive/master.zip --break-system-packages

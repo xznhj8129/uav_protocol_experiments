@@ -1,43 +1,47 @@
 from typing import List, Dict
 import csv
 import json
+import pprint
+import os
 
 def generate_enums_file(message_dict):
-    # Existing code for categories
+    # Remove old file to ensure fresh generation
+    if os.path.exists("message_structure.py"):
+        os.remove("message_structure.py")
+    
+    # Generate MessageCategory enum
     category_code = "# This file is auto generated, refer to definitions.py\n\nclass MessageCategory(Enum):\n"
     categories = list(message_dict.keys())
     for i, category in enumerate(categories, start=1):
         category_code += f"    {category} = {i}\n"
 
-    # New code to assign subcategory values
+    # Assign values and strings to categories and subcategories
     values_code = "\n\n"
     for category in categories:
         subcategories = list(message_dict[category].keys())
         for i, subcategory in enumerate(subcategories, start=1):
-            values_code += f"Messages.{category}.{subcategory}.value = {i}\n"
+            values_code += f"Messages.{category}.{subcategory}.value_subcat = {i}\n"
             values_code += f'Messages.{category}.{subcategory}.str = {subcategory!r}\n'
-
     for i, category in enumerate(categories, start=1):
-        values_code += f"Messages.{category}.value = {i}\n"
+        values_code += f"Messages.{category}.value_cat = {i}\n"
         values_code += f'Messages.{category}.str = {category!r}\n'
 
-
-    # Existing code for messages
+    # Generate Messages class with nested enums
     messages_code = "class Messages:\n"
     for category in categories:
         messages_code += f"    class {category}:\n"
         for subcategory in message_dict[category]:
             messages_code += f"        class {subcategory}(Enum):\n"
-            for i, message in enumerate(message_dict[category][subcategory], start=1):
+            for message in message_dict[category][subcategory]:
                 messages_code += f"            {message} = auto()\n"
 
-    # Existing code for payloads (simplified)
+    # Assign payload definitions
     payload_code = ""
     for category in categories:
         for subcategory in message_dict[category]:
             for message in message_dict[category][subcategory]:
                 payload = message_dict[category][subcategory][message]
-                payload_code += f"Messages.{category}.{subcategory}.{message}.payload = {repr(payload)}\n"
+                payload_code += f"Messages.{category}.{subcategory}.{message}.payload_def = {repr(payload)}\n"
 
     # Combine all parts
     code = "from enum import Enum, auto\n\n"
@@ -46,71 +50,69 @@ def generate_enums_file(message_dict):
     code += values_code
     code += payload_code
 
-    # Write to file (existing logic)
+    # Debug: Print the generated code
+    print("Generated code:")
+    print(code)
+
+    # Write to file
     with open("message_structure.py", "w") as f:
         f.write(code)
+
+def generate_message_definitions():
+    """Reads the CSV, builds the message dictionary, writes it to JSON, and generates enums."""
+    messages = {}
+    with open("message_definitions.csv", newline='') as csvfile:
+        reader = csv.DictReader(csvfile, delimiter='\t')
+        current_message = None
+        for row in reader:
+            row = {k: (v.strip() if v is not None else "") for k, v in row.items()}
+            if row["Category"]:
+                current_category = row["Category"]
+                current_type = row["Type"] if row["Type"] else None
+                current_subtype = row["Subtype"] if row["Subtype"] else None
+                if current_category not in messages:
+                    messages[current_category] = {}
+                if current_type:
+                    if current_type not in messages[current_category]:
+                        messages[current_category][current_type] = {}
+                if current_subtype:
+                    messages[current_category][current_type][current_subtype] = []
+                current_message = (current_category, current_type, current_subtype)
+            else:
+                if current_message is None:
+                    continue
+                payload_field = row["FieldName"]
+                if payload_field:
+                    payload_field_type = row["FieldType"]
+                    payload_field_bitmask = row["FieldBitmask"]
+                    payload_field_bitmask_bool = payload_field_bitmask.upper() == "TRUE"
+                    payload = {
+                        "name": payload_field,
+                        "datatype": payload_field_type,
+                        "bitmask": payload_field_bitmask_bool
+                    }
+                    cat, typ, sub = current_message
+                    messages[cat][typ][sub].append(payload)
     
-class MessageDefinitions():
-    def __init__(self):
-        self.messages = {}
-        self.messages = {}
-        with open("message_definitions.csv", newline='') as csvfile:
-            reader = csv.DictReader(csvfile, delimiter='\t')
-            current_message = None  # will hold a tuple: (Category, Type, Subtype)
-            cats = {}
-            for row in reader:
-                #print(row)
-                # Clean each field (strip whitespace; convert missing values to empty strings)
-                row = {k: (v.strip() if v is not None else "") for k, v in row.items()}
-                # If the Category field is non‐empty, then this row starts a new message definition.
-                if row["Category"]:
-                    current_category = row["Category"]
-                    current_type = row["Type"] if row["Type"] else None
-                    current_subtype = row["Subtype"] if row["Subtype"] else None
-                    if current_category not in cats:
-                        cats[current_category] = {}
-                    else:
-                        cats[current_category][current_type] = [] if not current_subtype else current_subtype
-                    #print(current_category, cats) 
+    # Remove old JSON and write new
+    if os.path.exists("message_definitions.json"):
+        os.remove("message_definitions.json")
+    with open("message_definitions.json", "w") as file:
+        file.write(json.dumps(messages, indent=4))
+    
+    # Generate enums
+    generate_enums_file(messages)
 
-                    # Build the self.messages dictionary.
-                    if current_category not in self.messages:
-                        self.messages[current_category] = {}
-                    if current_type:
-                        if current_type not in self.messages[current_category]:
-                            self.messages[current_category][current_type] = {}
-                    if current_subtype:
-                        self.messages[current_category][current_type][current_subtype] = []
-
-                    # Remember the current message for subsequent payload rows.
-                    current_message = (current_category, current_type, current_subtype)
-                else:
-                    # If Category is empty, this row defines a payload field for the current message.
-                    if current_message is None:
-                        continue  # or raise an error if a payload row is found before any message definition
-                    payload_field = row["FieldName"]
-                    if payload_field:
-                        payload_field_type = row["FieldType"]
-                        payload_field_bitmask = row["FieldBitmask"]
-                        # Interpret bitmask flag (assumes the CSV uses "TRUE" or "FALSE")
-                        payload_field_bitmask_bool = payload_field_bitmask.upper() == "TRUE"
-                        payload_def = {
-                            "name": payload_field,
-                            "datatype": payload_field_type,
-                            "bitmask": payload_field_bitmask_bool
-                        }
-                        cat, typ, sub = current_message
-                        self.messages[cat][typ][sub].append(payload_def)
-            
-            # replace the csv file with json entirely soon
-            with open("message_definitions.json","w+") as file:
-                file.write(json.dumps(self.messages,indent=4))
-            generate_enums_file(self.messages)
-
-# For debugging, you can print the generated dictionaries:
 if __name__ == '__main__':
-    import pprint
+    generate_message_definitions()
+    from protocol import MessageDefinitions
     protodefs = MessageDefinitions()
     print("Structure:")
     pprint.pprint(protodefs.messages)
-
+    
+    # Test the generated enums
+    from message_structure import Messages
+    print("\nTesting enum values:")
+    print("Status.System.FLIGHT:", Messages.Status.System.FLIGHT.value)
+    print("Status.System.POSITION:", Messages.Status.System.POSITION.value)
+    print("System value:", Messages.Status.System.value_subcat)

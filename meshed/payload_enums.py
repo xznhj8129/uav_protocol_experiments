@@ -26,7 +26,18 @@ class PayloadEnum:
         SOFTWARE_ERROR = auto()
         DATABSE_ERROR = auto()
 
-    class Enum_Flight_Phase(IntEnum):
+    class FlightMode(IntEnum):
+        ACRO = auto()
+        ANGLE = auto()
+        POSHOLD = auto()
+        NAV_WP = auto()
+        LOITER = auto()
+        CRUSE = auto()
+        RTH = auto()
+        LANDING = auto()
+        DISARMED = auto()
+
+    class FlightPhase(IntEnum):
         PREFLIGHT = auto()
         TAKEOFF = auto()
         CRUISE = auto()
@@ -35,7 +46,7 @@ class PayloadEnum:
         LANDING = auto()
         POSTFLIGHT = auto()
 
-    class Enum_Mission_Phase(IntEnum):
+    class MissionPhase(IntEnum):
         BOOTING = auto()
         ONLINE = auto()
         MISSION_RECEIVED = auto()

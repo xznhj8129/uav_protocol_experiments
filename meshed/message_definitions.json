@@ -8,13 +8,45 @@
         "Mission": {
             "MISSION_PHASE": [
                 {
-                    "name": "Enum_Mission_Phase",
+                    "name": "MissionPhase",
                     "datatype": "enum",
                     "bitmask": false
                 }
             ]
         },
         "System": {
+            "INAV": [
+                {
+                    "name": "inavmodes",
+                    "datatype": "int",
+                    "bitmask": false
+                },
+                {
+                    "name": "airspeed",
+                    "datatype": "int",
+                    "bitmask": false
+                },
+                {
+                    "name": "groundspeed",
+                    "datatype": "int",
+                    "bitmask": false
+                },
+                {
+                    "name": "heading",
+                    "datatype": "int",
+                    "bitmask": false
+                },
+                {
+                    "name": "msl_alt",
+                    "datatype": "int",
+                    "bitmask": false
+                },
+                {
+                    "name": "packed_mgrs",
+                    "datatype": "bytes",
+                    "bitmask": false
+                }
+            ],
             "FLIGHT": [
                 {
                     "name": "FlightMode",
@@ -23,36 +55,37 @@
                 },
                 {
                     "name": "airspeed",
-                    "datatype": "uint8_t",
+                    "datatype": "int",
                     "bitmask": false
                 },
                 {
                     "name": "groundspeed",
-                    "datatype": "uint8_t",
+                    "datatype": "int",
                     "bitmask": false
                 },
                 {
                     "name": "heading",
-                    "datatype": "uint8_t",
+                    "datatype": "int",
                     "bitmask": false
                 },
                 {
                     "name": "msl_alt",
-                    "datatype": "uint16_t",
+                    "datatype": "int",
                     "bitmask": false
                 },
                 {
-                    "name": "lattitude",
-                    "datatype": "int32_t",
-                    "bitmask": false
-                },
-                {
-                    "name": "longitude",
-                    "datatype": "int32_t",
+                    "name": "packed_mgrs",
+                    "datatype": "bytes",
                     "bitmask": false
                 }
             ],
-            "POSITION": [],
+            "POSITION": [
+                {
+                    "name": "packed_mgrs",
+                    "datatype": "bytes",
+                    "bitmask": false
+                }
+            ],
             "NAVIGATION": [],
             "FUEL": [],
             "CONTROL": [],
@@ -75,7 +108,7 @@
             "SET_MISSION": [
                 {
                     "name": "mission_index",
-                    "datatype": "uint8_t",
+                    "datatype": "int",
                     "bitmask": false
                 }
             ],
@@ -90,20 +123,14 @@
             "SET_ZONE": [],
             "NAVIGATE_TO": [
                 {
-                    "name": "lattitude",
-                    "datatype": "int32_t",
-                    "bitmask": false
-                },
-                {
-                    "name": "longitude",
-                    "datatype": "int32_t",
+                    "name": "packed_mgrs",
+                    "datatype": "bytes",
                     "bitmask": false
                 }
             ],
             "LOITER": [],
             "LAND": [],
             "ALLOW_DEPLOY": [],
-            "ALLOW_ENGAGE": [],
             "SWARM_CONTROL": []
         }
     },
@@ -111,7 +138,7 @@
         "Mission": {
             "PHASE": [
                 {
-                    "name": "Enum_Mission_Phase",
+                    "name": "MissionPhase",
                     "datatype": "enum",
                     "bitmask": false
                 }
