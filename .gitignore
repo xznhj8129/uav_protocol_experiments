@@ -4,4 +4,4 @@ __pycache__/
 ./synczero.sh
 notes.txt
 ./dumpsrc.sh
-dump.txt
+meshed/dump.txt
