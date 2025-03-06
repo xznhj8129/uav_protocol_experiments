@@ -97,6 +97,7 @@ base_packet = {
 """
 Network schemas
 N        Words    Bits combo           Address         Nodes      Groups
+0        1        [16]                 0-65536         65536      0
 1        2        [8, 8]               255.255         65025      255       
 2        3        [8, 4, 4]            255.15.15       57375      3825      
 3        3        [7, 5, 4]            127.31.15       59055      3937      
@@ -116,6 +117,7 @@ N        Words    Bits combo           Address         Nodes      Groups
 17       4        [4, 4, 4, 4]         15.15.15.15     50625      3375      
 """
 RouteSchemas = [
+    [20],
     [8, 8], 
     [8, 4, 4], 
     [7, 5, 4], 
@@ -139,7 +141,6 @@ RouteSchemas = [
 # --- Enums and Flags ---
 
 class BinaryFlag(IntFlag):
-    # Define individual bit flags for the Binary Flags field (1 byte)
     SIMPLIFIED      = 1 << 0  
     ACK_REQUEST     = 1 << 1  
     REPLY           = 1 << 2  
@@ -150,11 +151,10 @@ class BinaryFlag(IntFlag):
     RESERVED_7      = 1 << 7
 
 class RoutingFlag(IntFlag):
-    # Define individual bit flags for the Binary Flags field (1 byte)
-    Q      = 1 << 0  
-    W     = 1 << 1  
-    E           = 1 << 2  
-    R       = 1 << 3  
+    ROUTE_SCHEMA    = 1 << 0  
+    RESERVED_2      = 1 << 1  
+    RESERVED_3      = 1 << 2  
+    RESERVED_4      = 1 << 3  
 
 class MessagePriority(IntEnum):
     FLASH = 0

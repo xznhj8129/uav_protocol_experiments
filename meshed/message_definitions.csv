@@ -1,0 +1,64 @@
+Category	Type	Subtype	FieldName	FieldType	FieldBitmask
+Heartbeat	System	HEARTBEAT			
+Status	Mission	MISSION_PHASE
+			Enum_Mission_Phase	enum	FALSE
+Status	System	FLIGHT			
+			FlightMode	enum	FALSE
+			airspeed	uint8_t	FALSE
+			groundspeed	uint8_t	FALSE
+			heading	uint8_t	FALSE
+			msl_alt	uint16_t	FALSE
+			lattitude	int32_t	FALSE
+			longitude	int32_t	FALSE
+Status	System	POSITION			
+Status	System	NAVIGATION			
+Status	System	FUEL			
+Status	System	CONTROL			
+Status	System	SYSTEMS			
+Status	System	NAV			
+Status	System	RADIO			
+Status	System	PAYLOAD			
+Command	System	ACTIVATE			
+Command	System	SHUTDOWN			
+Command	System	SET_FLIGHT_MODE			
+Command	System	SWITCH_DATALINK			
+Command	System	DATALINK_CONFIG			
+Command	System	SET_FLIGHT_PARAMETERS			
+Command	Mission	SET_MISSION			
+			mission_index	uint8_t	FALSE
+Command	Mission	SET_MISSION_MODE			
+Command	Mission	TAKEOFF			
+Command	Mission	ABORT			
+Command	Mission	HOLD			
+Command	Mission	PROCEED			
+Command	Mission	REROUTE			
+Command	Mission	REASSIGN			
+Command	Mission	SET_WAYPOINT			
+Command	Mission	SET_ZONE			
+Command	Mission	NAVIGATE_TO			
+			lattitude	int32_t	FALSE
+			longitude	int32_t	FALSE
+Command	Mission	LOITER			
+Command	Mission	LAND			
+Command	Mission	ALLOW_DEPLOY			
+Command	Mission	ALLOW_ENGAGE			
+Command	Mission	SWARM_CONTROL			
+Event	Mission	PHASE
+			Enum_Mission_Phase	enum	FALSE
+Event	System	ONLINE			
+Event	System	GPS_FIX			
+Event	System	ERROR			
+Event	System	RADIO			
+Event	System	RF_EVENT			
+Event	System	FAILSAFE			
+Event	System	HW_FAILURE			
+Data	Mission	QUERY_MISSION_ID			
+Data	Mission	QUERY_MISSION_PROGRESS			
+Data	Mission	QUERY_CONTACTS			
+Data	Mission	QUERY_SWARM_INFO			
+Data	System	QUERY_SENSOR_DATA			
+Data	System	QUERY_LOG_DATA			
+Data	System	QUERY_DATALINK_STATUS			
+Data	System	QUERY_NETWORK_STATUS			
+Data	System	QUERY_SYSTEM_HEALTH			
+Data	System	QUERY_TELEMETRY			

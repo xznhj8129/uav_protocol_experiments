@@ -1,0 +1,11 @@
+Category	Type	Subtype	FieldName	FieldType	FieldBitmask
+System	Status	HEARTBEAT			
+System	Status	GPS			
+			sats	uint8_t	FALSE
+System	Test	TEST_RADIO			
+Command	Mission	SET_MISSION			
+			mission_index	uint8_t	FALSE
+Command	Mission	NAVIGATE_TO			
+			lattitude	int32_t	FALSE
+			longitude	int32_t	FALSE
+Command	Report	TEST			
