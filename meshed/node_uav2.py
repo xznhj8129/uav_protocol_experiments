@@ -10,38 +10,14 @@ from frogtastic import MeshtasticClient
 import froggeolib
 import frogcot
 from message_structure import Messages
-from transport import Transport
+from datalinks import *
 from protocol import *
 
 
-# Constants
-RADIO_PORT = '/dev/ttyUSB0'
-LINK_PORT = 260  # Meshtastic port
-TELEMETRY_PORT = '/dev/ttyACM1'
-MY_ID = "drone1"
-SEND_INTERVAL = 5
-PRELOAD_MODES = [27, 10, 12, 38]
-SOCKET_HOST = '127.0.0.1'  # Localhost for testing
-SOCKET_PORT = 5555
 
-# Transport configuration
-USE_MESHTASTIC = True 
-USE_SOCKET = False
-
-modemap = [27, 10, 12, 38, 0, 1, 53, 11, 31, 47]
-
-nodemap = {
-    "gcs1": {
-        "meshid": "!55c7628c",
-        "ip": "127.0.0.1:5556",
-        "routes": {}
-    },
-    "drone1": {
-        "meshid": "!3364355c",
-        "ip": "127.0.0.1:5555",
-        "routes": {}
-    },
-}
+# Helper function to convert bitmap to list of active bits
+def int_to_list(bitmap):
+    return [i for i in range(bitmap.bit_length()) if (bitmap & (1 << i)) != 0]
 
 
 def list_to_int(indices):
@@ -50,19 +26,70 @@ def list_to_int(indices):
         bitmap |= (1 << i)
     return bitmap
 
-async def main():
-    # Initialize transports
-    mesh_client = MeshtasticClient(RADIO_PORT) if USE_MESHTASTIC else None
-    sock = None
-    if USE_SOCKET:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.setblocking(False)  # Non-blocking for asyncio
-        sock.bind(('', SOCKET_PORT))  # UAV listens on this port
+# Helper function to get node ID from IP address
+def get_node_from_ip(ip):
+    for node, info in nodemap.items():
+        if info["ip"] == ip:
+            return node
+    return "unknown"
 
-    transport = Transport(mesh_client=mesh_client, sock=sock)
-    transport.nodemap = nodemap
-    uav_id = mesh_client.meshint.getMyNodeInfo()["user"]["id"] if mesh_client else "UAV_SOCKET"
-    print(f"[INIT] My node ID: {uav_id}")
+# Helper function to get node ID from mesh ID
+def get_node_from_meshid(meshid):
+    for node, info in nodemap.items():
+        if info["meshid"] == meshid:
+            return node
+    return "unknown"
+
+my_name = "drone1"
+TELEMETRY_PORT = "/dev/ttyUSB0"
+nodemap = load_nodes_map()
+my_id = nodemap[my_name]["meshid"]
+
+link_config = {
+    "meshtastic": {
+        "use": False,
+        "radio_serial": '/dev/ttyUSB1',
+        "app_portnum": 260
+    },
+    "udp": {
+        "use": True,
+        "port": 5556,
+        
+    },
+
+    "node_map": load_nodes_map()
+}
+
+# Set socket host and port based on this node's ID from nodemap
+socket_host, socket_port = nodemap[my_name]["ip"]
+USE_MESHTASTIC = link_config["meshtastic"]["use"]
+USE_UDP = link_config["udp"]["use"]
+
+
+PRELOAD_MODES = [27, 10, 12, 38, 0, 1, 53, 11, 31, 47]
+SEND_INTERVAL = 5
+#PRELOAD_MODES = [27, 10, 12, 38]
+
+
+
+async def main():
+    datalinks = DatalinkInterface(
+        use_meshtastic=USE_MESHTASTIC,
+        radio_port=link_config["meshtastic"]["radio_serial"],
+        use_udp=USE_UDP,
+        socket_host=socket_host,
+        socket_port=socket_port,
+        my_name=my_name,
+        my_id=my_id,
+        nodemap=nodemap
+    )
+
+    datalinks.start()
+
+    # If Meshtastic were enabled, print node info (not applicable here since USE_MESHTASTIC is False)
+    if USE_MESHTASTIC and datalinks.mesh_client:
+        uav_id = datalinks.mesh_client.meshint.getMyNodeInfo()
+        print(f"[INIT] My node ID: {uav_id}")
 
     # Initialize UAV
     mydrone = UAVControl(device=TELEMETRY_PORT, baudrate=115200, platform="AIRPLANE")
@@ -96,11 +123,11 @@ async def main():
             if gps.alt == 0: gps.alt = 0.0001
             gyro = mydrone.get_attitude()
             full_mgrs = froggeolib.latlon_to_mgrs(gps.lat, gps.lon, precision=5)
+            print(full_mgrs)
             pos = froggeolib.encode_mgrs_binary(full_mgrs, precision=5)
 
             msg_enum = Messages.Status.System.INAV
             
-
             msg_id = messageid(msg_enum)
             payload = msg_enum.payload(
                 airspeed=int(speed),
@@ -113,11 +140,11 @@ async def main():
 
             # Send telemetry
             encoded_message = encode_message(msg_enum, payload)
-            transport.send(encoded_message,"gcs1")
+            datalinks.send(encoded_message,dest="gcs1", udp=USE_UDP)
             print(f"[SENT] Telemetry message, length: {len(encoded_message)} bytes")
 
             # Receive messages
-            messages = transport.receive()
+            messages = datalinks.receive()
             for msg in messages:
                 try:
                     category, subcategory, message, payload = decode_message(msg["data"])
@@ -132,16 +159,13 @@ async def main():
 
             await asyncio.sleep(SEND_INTERVAL)
 
-    except Exception as e:
-        print(f"Error: {e}")
+    except IOError as e:
+        print(f"Node Error: {e}")
     except KeyboardInterrupt as e:
         print(f"Shut down")
     finally:
         mydrone.stop()
-        if mesh_client:
-            mesh_client.meshint.close()
-        if sock:
-            sock.close()
+        datalinks.stop()
         print("Connection closed")
 
 if __name__ == '__main__':

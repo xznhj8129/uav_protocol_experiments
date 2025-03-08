@@ -1,99 +1,127 @@
 import time
 import socket
+import asyncio
 from frogtastic import MeshtasticClient
 import froggeolib
 from unavlib.modules.utils import inavutil
 from message_structure import Messages
 from protocol import *
-from transport import Transport
+from datalinks import *
 
-nodemap = {
-    "gcs1": {
-        "meshid": "!55c7628c",
-        "ip": "127.0.0.1:5556",
-        "routes": {}
-    },
-    "drone1": {
-        "meshid": "!3364355c",
-        "ip": "127.0.0.1:5555",
-        "routes": {}
-    },
-}
 
-RADIO_PORT = '/dev/ttyACM0'
-LINK_PORT = 260
-modemap = [27, 10, 12, 38, 0, 1, 53, 11, 31, 47]
-SOCKET_HOST = '127.0.0.1'
-SOCKET_PORT = 5555 
-MY_ID = "gcs1"
-
-# Transport configuration
-USE_MESHTASTIC = True
-USE_SOCKET = False
-
-# Initialize transports
-mesh_client = MeshtasticClient(RADIO_PORT) if USE_MESHTASTIC else None
-sock = None
-if USE_SOCKET:
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.setblocking(False)
-
-transport = Transport(mesh_client=mesh_client, sock=sock)
-print("Connected to transports")
-if mesh_client:
-    print(mesh_client.meshint.getMyNodeInfo())
-
+# Helper function to convert bitmap to list of active bits
 def int_to_list(bitmap):
     return [i for i in range(bitmap.bit_length()) if (bitmap & (1 << i)) != 0]
 
-command_queue = [
-    {
-        "dest": "drone1",
-        "msgid": messageid(Messages.Command.Mission.NAVIGATE_TO),
-        "data": {"mgrs": "18TWL12345678"},
-        "frequency": None # if none, send once
-    }
-]
+# Helper function to get node ID from mesh ID
+def get_node_from_meshid(meshid):
+    for node, info in nodemap.items():
+        if info["meshid"] == meshid:
+            return node
+    return "unknown"
 
-try:
-    while True:
-        msgs = transport.receive()
-        if msgs:
-            for msg in msgs:
-                try:
-                    print(f"\n[RECEIVED] Message at {time.time():.1f}")
-                    print(f"From: {msg['senderid']}")
-                    print(msg)
-                    msgid, data = decode_message(msg["data"])
-                    print("MSG ID:", msgid)
-                    data["packed_mgrs"] = froggeolib.decode_mgrs_binary(data["packed_mgrs"],precision=5)
-                    for key, value in data.items():
-                        print(f"\t{key}: {value}")
+# Node map defining node IDs, mesh IDs, and IP addresses with ports
+modemap = [27, 10, 12, 38, 0, 1, 53, 11, 31, 47]
 
-                    data["pos"] = froggeolib.mgrs_to_latlon(data["packed_mgrs"])
+my_name = "gcs1"
+nodemap = load_nodes_map()
+my_id = nodemap[my_name]["meshid"]
 
-                    modes = int_to_list(data["inavmodes"])
-                    activemodes = []
-                    for i in modes:
-                        activemodes.append(modemap[i])
-                    print('Modes:',[inavutil.modesID.get(i) for i in activemodes])
+link_config = {
+    "meshtastic": {
+        "use": False,
+        "radio_serial": '/dev/ttyACM0',
+        "app_portnum": 260
+    },
+    "udp": {
+        "use": True,
+        "port": 5555,
+        
+    },
+
+    "node_map": load_nodes_map()
+}
+
+# Set socket host and port based on this node's ID from nodemap
+socket_host, socket_port = nodemap[my_name]["ip"]
+USE_MESHTASTIC = link_config["meshtastic"]["use"]
+USE_UDP = link_config["udp"]["use"]
+
+async def main():
+    datalinks = DatalinkInterface(
+        use_meshtastic=USE_MESHTASTIC,
+        radio_port=link_config["meshtastic"]["radio_serial"],
+        use_udp=USE_UDP,
+        socket_host=socket_host,
+        socket_port=socket_port,
+        my_id=my_id,
+        nodemap=nodemap
+    )
+
+    datalinks.start()
+
+    if USE_MESHTASTIC and datalinks.mesh_client:
+        print(datalinks.mesh_client.meshint.getMyNodeInfo())
+
+    # Command queue with a command to send to drone1
+    command_queue = [
+        {
+            "dest": "drone1",
+            "msgid": messageid(Messages.Command.Mission.NAVIGATE_TO),
+            "data": {"mgrs": "18TWL12345678"},
+            "frequency": None  # Send once if frequency is None
+        }
+    ]
+
+    # Send commands from the command_queue at startup (not yet)
+    #for command in command_queue:
+    #    if command["frequency"] is None:
+    #        encoded_data = encode_message(command["msgid"], command["data"])
+    #        datalinks.send(encoded_data, dest=command["dest"])
+    #        print(f"Sent command to {command['dest']}: {command['msgid']}")
+
+    try:
+        while True:
+            # Receive messages from the datalinks
+            msgs = datalinks.receive()
+            if msgs:
+                for msg in msgs:
+                    try:
+                        print(f"\n[RECEIVED] Message at {time.time():.1f}")
+                        if "senderid" in msg:
+                            sender_meshid = msg["senderid"]
+                            sender = get_node_from_meshid(sender_meshid)
+                        elif "from" in msg:
+                            sender = msg["from"]
+                        else:
+                            sender = "unknown"
+                        print(f"From: {sender}")
+                        print(msg)
+
+                        msgid, data = decode_message(msg["data"])
+                        print("MSG ID:", msgid)
+
+                        if "packed_mgrs" in data:
+                            data["mgrs"] = froggeolib.decode_mgrs_binary(data["packed_mgrs"], precision=5)
+                            data["pos"] = froggeolib.mgrs_to_latlon(data["mgrs"])
+
+                        for key, value in data.items():
+                            print(f"\t{key}: {value}")
+
+                        if "inavmodes" in data:
+                            modes = int_to_list(data["inavmodes"])
+                            activemodes = [modemap[i] for i in modes]
+                            print('Modes:', [inavutil.modesID.get(i) for i in activemodes])
+                    except Exception as e:
+                        print(f"Error decoding message: {e}")
+            await asyncio.sleep(1)
+    except KeyboardInterrupt:
+        print("Shut down")
+    finally:
+        # Properly stop the datalinks to clean up resources
+        datalinks.stop()
+        print("Connection closed")
 
 
-                except Exception as e:
-                    print(f"Error decoding message: {e}")
-
-        # Send a NAVIGATE_TO command (example)
-
-
-
-
-        time.sleep(1)
-
-except KeyboardInterrupt as e:
-    print(f"Shut down")
-finally:
-    if mesh_client:
-        mesh_client.meshint.close()
-    if sock:
-        sock.close()
-    print("Connection closed")
+if __name__ == "__main__":
+    asyncio.run(main())
