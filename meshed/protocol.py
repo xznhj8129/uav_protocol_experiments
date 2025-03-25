@@ -100,7 +100,7 @@ def message_str_from_id(msg_id):
     try:
         category_enum = MessageCategory(category_value)
         category_name = category_enum.name
-    except ValueError:
+    except ValueError as e:
         raise ValueError(f"Protocol Error: Invalid category value: {category_value}")
     
     category_class = getattr(Messages, category_name)
@@ -131,7 +131,7 @@ def get_message_enum(category_value, subcategory_value, message_value):
     try:
         category_enum = MessageCategory(category_value)
         category_name = category_enum.name
-    except ValueError:
+    except ValueError as e:
         raise ValueError(f"Protocol Error: Invalid category value: {category_value}")
 
     category_class = getattr(Messages, category_name)
@@ -145,7 +145,7 @@ def get_message_enum(category_value, subcategory_value, message_value):
 
     try:
         enum_member = subcategory_class(message_value)
-    except ValueError:
+    except ValueError as e:
         raise ValueError(f"Protocol Error: No message found with value {message_value} in {category_name}.{subcategory_class.__name__}")
 
     return enum_member
@@ -188,7 +188,7 @@ def create_payload(self, **kwargs):
                 enum_class = getattr(PayloadEnum, field_info["type"])
                 if not isinstance(value, enum_class):
                     raise TypeError(f"Protocol Error: Field '{key}' expects an instance of {field_info['type']}, got {type(value).__name__}")
-            except AttributeError:
+            except AttributeError as e:
                 raise ValueError(f"Protocol Error: Enum class {field_info['type']} not found in PayloadEnum")
         else:
             expected_type = type_mapping.get(field_info["type"])
@@ -227,9 +227,9 @@ def decode_message(data):
                 try:
                     enum_class = getattr(PayloadEnum, datatype)
                     value = enum_class(value)
-                except ValueError:
+                except ValueError as e:
                     raise ValueError(f"Protocol Error: Invalid value {value} for enum {datatype}")
-                except AttributeError:
+                except AttributeError as e:
                     raise ValueError(f"Protocol Error: Enum class {datatype} not found in PayloadEnum")
 
         payload_dict[key] = value
@@ -302,3 +302,31 @@ if __name__ == "__main__":
 
 
     
+    msg_enum = Messages.Testing.System.TEXTMSG
+    msg_id = messageid(msg_enum)
+    payload = msg_enum.payload(
+        textdata=b"testing"
+    )
+    encoded_msg = encode_message(msg_enum, payload)
+    # for meshtastic, send encoded_msg directly
+    eudp = encode_udp_packet(source="me", destination="you", payload=encoded_msg)
+
+    print()
+    print("#" * 16)
+    print(message_str_from_id(msg_id))
+    print('msgid:', msg_id)
+    print("Payload list:", payload)
+    print("Encoded:", encoded_msg)
+    print("Length:", len(encoded_msg))
+    print('UDP packet:', eudp)
+
+
+    dudp = decode_udp_packet(eudp)
+    enum_member, decoded_payload = decode_message(dudp[2])
+
+    print()
+    print("#" * 16)
+    print('Decoded UDP packet:', dudp)
+    print("Decoded enum:", enum_member)
+    print("Decoded payload:", decoded_payload)
+    print("Message string:", message_str_from_id(messageid(enum_member)))

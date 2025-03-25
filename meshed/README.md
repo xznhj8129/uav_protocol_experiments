@@ -38,15 +38,15 @@ Cursor-on-Target support\
 - If message is sent throigh Meshtastic, the straight payload is sent as data to the app port, as Meshtastic already provides error checking and routing data such as sender, time, etc.
 - If message is sent through UDP or other type of lower level protocol, payload is wrapped in a more structured packet
 
-##### UDP Packet Structure ---
+##### UDP Packet Structure
 | sync byte | payload length | CRC16 | source id | destination id | payload |
 |--|----|--------|---------|-------|-----|
 
-#### Link Configuration:
+### Link Configuration:
 - **links_config.json** is node-specific provides information on it's identities, devices, addresses, keys, etc.
 - **nodes.json** is pre-shared across nodes and provides network mapping, public keys, etc
 
-#### Nested MessageID Enum Tree:
+### Nested MessageID Enum Tree:
 
 Instead of a flat list, message identifiers are organized in a nested tree structure for ease of programming:
 

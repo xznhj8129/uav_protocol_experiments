@@ -1,5 +1,9 @@
 Category	Type	Subtype	FieldName	FieldType	FieldBitmask
 Heartbeat	System	HEARTBEAT			
+Testing	System	TEXTMSG
+			textdata	bytes	FALSE
+Testing	System	BINMSG
+			data	bytes	FALSE
 Status	Mission	MISSION_PHASE			
 			MissionPhase	enum	FALSE
 Status	System	INAV			

@@ -4,15 +4,20 @@ from enum import Enum, auto
 
 class MessageCategory(Enum):
     Heartbeat = 1
-    Status = 2
-    Command = 3
-    Event = 4
-    Data = 5
+    Testing = 2
+    Status = 3
+    Command = 4
+    Event = 5
+    Data = 6
 
 class Messages:
     class Heartbeat:
         class System(Enum):
             HEARTBEAT = auto()
+    class Testing:
+        class System(Enum):
+            TEXTMSG = auto()
+            BINMSG = auto()
     class Status:
         class Mission(Enum):
             MISSION_PHASE = auto()
@@ -79,6 +84,8 @@ class Messages:
 
 Messages.Heartbeat.System.value_subcat = 1
 Messages.Heartbeat.System.str = 'System'
+Messages.Testing.System.value_subcat = 1
+Messages.Testing.System.str = 'System'
 Messages.Status.Mission.value_subcat = 1
 Messages.Status.Mission.str = 'Mission'
 Messages.Status.System.value_subcat = 2
@@ -97,15 +104,19 @@ Messages.Data.System.value_subcat = 2
 Messages.Data.System.str = 'System'
 Messages.Heartbeat.value_cat = 1
 Messages.Heartbeat.str = 'Heartbeat'
-Messages.Status.value_cat = 2
+Messages.Testing.value_cat = 2
+Messages.Testing.str = 'Testing'
+Messages.Status.value_cat = 3
 Messages.Status.str = 'Status'
-Messages.Command.value_cat = 3
+Messages.Command.value_cat = 4
 Messages.Command.str = 'Command'
-Messages.Event.value_cat = 4
+Messages.Event.value_cat = 5
 Messages.Event.str = 'Event'
-Messages.Data.value_cat = 5
+Messages.Data.value_cat = 6
 Messages.Data.str = 'Data'
 Messages.Heartbeat.System.HEARTBEAT.payload_def = []
+Messages.Testing.System.TEXTMSG.payload_def = [{'name': 'textdata', 'datatype': 'bytes', 'bitmask': False}]
+Messages.Testing.System.BINMSG.payload_def = [{'name': 'data', 'datatype': 'bytes', 'bitmask': False}]
 Messages.Status.Mission.MISSION_PHASE.payload_def = [{'name': 'MissionPhase', 'datatype': 'enum', 'bitmask': False}]
 Messages.Status.System.INAV.payload_def = [{'name': 'inavmodes', 'datatype': 'int', 'bitmask': False}, {'name': 'airspeed', 'datatype': 'int', 'bitmask': False}, {'name': 'groundspeed', 'datatype': 'int', 'bitmask': False}, {'name': 'heading', 'datatype': 'int', 'bitmask': False}, {'name': 'msl_alt', 'datatype': 'int', 'bitmask': False}, {'name': 'packed_mgrs', 'datatype': 'bytes', 'bitmask': False}]
 Messages.Status.System.FLIGHT.payload_def = [{'name': 'FlightMode', 'datatype': 'enum', 'bitmask': False}, {'name': 'airspeed', 'datatype': 'int', 'bitmask': False}, {'name': 'groundspeed', 'datatype': 'int', 'bitmask': False}, {'name': 'heading', 'datatype': 'int', 'bitmask': False}, {'name': 'msl_alt', 'datatype': 'int', 'bitmask': False}, {'name': 'packed_mgrs', 'datatype': 'bytes', 'bitmask': False}]

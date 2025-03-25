@@ -4,6 +4,24 @@
             "HEARTBEAT": []
         }
     },
+    "Testing": {
+        "System": {
+            "TEXTMSG": [
+                {
+                    "name": "textdata",
+                    "datatype": "bytes",
+                    "bitmask": false
+                }
+            ],
+            "BINMSG": [
+                {
+                    "name": "data",
+                    "datatype": "bytes",
+                    "bitmask": false
+                }
+            ]
+        }
+    },
     "Status": {
         "Mission": {
             "MISSION_PHASE": [
