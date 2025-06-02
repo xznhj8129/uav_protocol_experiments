@@ -259,7 +259,7 @@ if __name__ == "__main__":
 
     gps = GPSposition(lat=15.83345500, lon=20.89884100, alt=0)
     full_mgrs = latlon_to_mgrs(gps.lat, gps.lon, precision=5)
-    pos = encode_mgrs_binary(full_mgrs, precision=5)
+    pos = encode_mgrs_binary(full_mgrs, precision=5) # you don't have to do this, i'm just testing stuff
 
     print(gps)
     print(full_mgrs)

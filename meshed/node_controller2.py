@@ -26,6 +26,9 @@ modemap = [27, 10, 12, 38, 0, 1, 53, 11, 31, 47]
 my_name = "gcs1"
 nodemap = load_nodes_map()
 my_id = nodemap[my_name]["meshid"]
+socket_host, socket_port = nodemap[my_name]["ip"]
+USE_MESHTASTIC = link_config["meshtastic"]["use"]
+USE_UDP = link_config["udp"]["use"]
 
 link_config = {
     "meshtastic": {
@@ -35,17 +38,13 @@ link_config = {
     },
     "udp": {
         "use": True,
-        "port": 5555,
+        "port": socket_port,
         
     },
 
-    "node_map": load_nodes_map()
+    "node_map": nodemap
 }
 
-# Set socket host and port based on this node's ID from nodemap
-socket_host, socket_port = nodemap[my_name]["ip"]
-USE_MESHTASTIC = link_config["meshtastic"]["use"]
-USE_UDP = link_config["udp"]["use"]
 
 async def main():
     datalinks = DatalinkInterface(
@@ -87,6 +86,7 @@ async def main():
             if msgs:
                 for msg in msgs:
                     try:
+                        
                         print(f"\n[RECEIVED] Message at {time.time():.1f}")
                         if "senderid" in msg:
                             sender_meshid = msg["senderid"]
@@ -114,6 +114,7 @@ async def main():
                             print('Modes:', [inavutil.modesID.get(i) for i in activemodes])
                     except Exception as e:
                         print(f"Error decoding message: {e}")
+
             await asyncio.sleep(1)
     except KeyboardInterrupt:
         print("Shut down")

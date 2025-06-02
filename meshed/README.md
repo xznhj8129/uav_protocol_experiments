@@ -1,8 +1,7 @@
 # Flexible mesh network UAV communication library
-The protocol is built for autonomous drone swarming where each node (drone or ground station) communicates over a variety of mesh networked high and low-bandwidth link (e.g., LoRa).\
+The protocol is built for autonomous drone swarming where each node (drone or ground station) communicates over a variety of mesh networked high (e.g., 802.11s) and low-bandwidth link (e.g., LoRa).\
 Uses defined protocol and msgpack to send data over flexible links\
 Significantly simplified and integrated with my other libraries\
-Cursor-on-Target support\
 
 **Warnings:**
 - Not even pre-alpha, barely proof of concept, this will be in flux constantly
@@ -12,7 +11,7 @@ Cursor-on-Target support\
 ## Planned Features:
 - Mesh/Swarm Architecture: Explicit support for routing in a multi-hop mesh network
 - Uses Msgpack for simple binary packing and maximum byte efficiency
-- Cursor-on-Target (CoT) Support: Dedicated support for CoT events to enable situational awareness
+- Cursor-on-Target (CoT) Support: Dedicated support for CoT
 - Optional Authentification and Security
 - MAVLink and MSP support
 
