@@ -20,15 +20,13 @@ def get_node_from_meshid(meshid):
             return node
     return "unknown"
 
-# Node map defining node IDs, mesh IDs, and IP addresses with ports
 modemap = [27, 10, 12, 38, 0, 1, 53, 11, 31, 47]
 
 my_name = "gcs1"
+# Node map defining node IDs, mesh IDs, and IP addresses with ports
 nodemap = load_nodes_map()
 my_id = nodemap[my_name]["meshid"]
 socket_host, socket_port = nodemap[my_name]["ip"]
-USE_MESHTASTIC = link_config["meshtastic"]["use"]
-USE_UDP = link_config["udp"]["use"]
 
 link_config = {
     "meshtastic": {
@@ -45,6 +43,10 @@ link_config = {
     "node_map": nodemap
 }
 
+USE_MESHTASTIC = link_config["meshtastic"]["use"]
+USE_UDP = link_config["udp"]["use"]
+MULTICAST_GROUP = "239.0.0.1"
+MULTICAST_PORT = 5550
 
 async def main():
     datalinks = DatalinkInterface(
@@ -54,7 +56,9 @@ async def main():
         socket_host=socket_host,
         socket_port=socket_port,
         my_id=my_id,
-        nodemap=nodemap
+        nodemap=nodemap,
+        multicast_group=MULTICAST_GROUP,
+        multicast_port=MULTICAST_PORT
     )
 
     datalinks.start()

@@ -64,6 +64,8 @@ link_config = {
 socket_host, socket_port = nodemap[my_name]["ip"]
 USE_MESHTASTIC = link_config["meshtastic"]["use"]
 USE_UDP = link_config["udp"]["use"]
+MULTICAST_GROUP = "239.0.0.1"
+MULTICAST_PORT = 5550
 
 
 PRELOAD_MODES = [27, 10, 12, 38, 0, 1, 53, 11, 31, 47]
@@ -81,12 +83,13 @@ async def main():
         socket_port=socket_port,
         my_name=my_name,
         my_id=my_id,
-        nodemap=nodemap
+        nodemap=nodemap,
+        multicast_group=MULTICAST_GROUP,
+        multicast_port=MULTICAST_PORT
     )
 
     datalinks.start()
 
-    # If Meshtastic were enabled, print node info (not applicable here since USE_MESHTASTIC is False)
     if USE_MESHTASTIC and datalinks.mesh_client:
         uav_id = datalinks.mesh_client.meshint.getMyNodeInfo()
         print(f"[INIT] My node ID: {uav_id}")
@@ -140,7 +143,7 @@ async def main():
 
             # Send telemetry
             encoded_message = encode_message(msg_enum, payload)
-            datalinks.send(encoded_message,dest="gcs1", udp=USE_UDP)
+            datalinks.send(encoded_message, dest="gcs1", udp=USE_UDP)
             print(f"[SENT] Telemetry message, length: {len(encoded_message)} bytes")
 
             # Receive messages

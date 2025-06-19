@@ -68,7 +68,7 @@ The `encode_message_id` function packs these components into a single 16-bit int
 
 ### Usage:
 - Define messages in message_definitions.csv (for now)
-- run definitions.py, generates .json and enums file (soon start from json alone)
+- run gen_definitions.py, generates .json and enums file
 - payload_enums.py defines enums of packed binary enum values
 - protocol.py defines usage and structure
 
